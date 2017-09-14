@@ -1,6 +1,9 @@
 # 跨进程通信工具MMessenger
 
+KOTLIN工程的发布过程， 参考链接 (https://liungkejin.github.io/2016/04/12/Publish-Kotlin-Lib-To-Jcenter.html)
+
 版本更新见 [历史版本](LOG.md)
+
 
 ## 工具说明
 
