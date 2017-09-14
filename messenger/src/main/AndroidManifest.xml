@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+
+    package="com.mapeiyu.messenger">
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+
+        <service
+            android:name="com.mapeiyu.server.MMessengerService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="${applicationId}.MMessenger" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

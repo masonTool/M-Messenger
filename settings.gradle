@@ -1,0 +1,1 @@
+include ':messenger', ':sample-mm-server', ':sample-mm-client'

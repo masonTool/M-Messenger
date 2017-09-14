@@ -1,0 +1,106 @@
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper paramters
+        pom.project {
+            packaging 'aar'
+            name myName
+            url myUrl
+
+            //设置开源证书信息
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                }
+            }
+            //添加开发者信息
+            developers {
+                developer {
+                    name 'MaPeiyu'
+                    email 'mason.mpy@gmail.com'
+                }
+            }
+
+            scm {
+                connection myUrl
+                developerConnection myUrl
+                url myUrl
+            }
+        }
+    }
+}
+
+
+/**
+ * 这个就是执行命令的任务
+ */
+//"java -Djava.ext.dirs=. -jar dokka-fatjar.jar exrecyclerview/src/main/kotlin/ -format javadoc -output exrecyclerview/build/doc"
+task dokkaJavadoc(type: org.gradle.api.tasks.Exec) {
+    workingDir '.'
+    println "WorkingDir: $workingDir"
+    ext.toolJarPath = "$workingDir"
+    ext.dokkaJarPath = "$workingDir"+File.separator+"dokka-fatjar.jar"
+    ext.sourceDirs = "$workingDir"+File.separator+"src"+File.separator+"main"
+    ext.outputFormat = 'javadoc'
+    ext.outputDirectory = "$buildDir" + File.separator+ "javadoc"
+
+    /**
+     *
+     * 这里输出格式可以为: html , markdown, jekyll, javadoc
+     * 如果是 javadoc 格式, 他会用到 javadoc 的库,
+     * 如果你的 PATH 没有包含 JDK x.x.x/lib 路径的话, 就会报 'java.lang.ClassNotFoundException: com.sun.javadoc.DocErrorReporter' 异常
+     * 所以需要你主动将这个路径加进来, 或者将 JDK x.x.x/lib/tools.jar 文件拷贝出来, 下面这个命令我就是拷贝到了当前目录
+     *
+     * dokka-fatjar.jar 这个jar就是从 dokka 项目上下载下来的
+     *
+     * 如果你是 Linux 系统, 就用这个
+     */
+    commandLine 'java', "-Djava.ext.dirs=$toolJarPath", '-jar', "$dokkaJarPath", "$sourceDirs", '-format', "$outputFormat", '-output', "$outputDirectory"
+}
+
+/**
+ * 这里将生成的文档打包成 xxxx-javadoc.jar
+ */
+task kotlinDocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    classifier = 'javadoc'
+    from dokkaJavadoc.outputDirectory
+}
+
+/**
+ * 这里将源码打包成 xxx-sources.jar
+ */
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from android.sourceSets.main.java.srcDirs
+}
+
+
+artifacts {
+    archives kotlinDocJar
+    archives sourceJar
+}
+
+//配置上传Bintray相关信息
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+
+    configurations = ['archives']
+    pkg {
+        repo = 'maven' // 上传到中央仓库的名称
+        name = myName // 上传到jcenter 的项目名称
+        desc = myDesc // 项目描述
+        websiteUrl = "http://www.mapeiyu.com"
+        issueTrackerUrl = myUrl
+        vcsUrl = myUrl
+        labels = ['aar', 'plugin']
+        licenses = ['Apache-2.0']
+        publish = true
+    }
+}
